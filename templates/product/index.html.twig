@@ -1,0 +1,197 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+<div class="container">
+    <h1>Product List</h1>
+    <div class="row mt-3">
+        <div class="col-md-12">
+            <div class="text-end">
+                <a href="{{ path('product_export') }}" class="btn btn-info">Export CSV</a>
+                <button class="btn btn-primary" data-toggle="modal" data-target="#addNew"><i class="bi bi-plus"></i></button>
+            </div>
+        </div>
+    </div>
+    <form class="" method="post" action="{{ path('product_list') }}">
+        <div class="row mt-3">
+            <div class="col-md-2">
+                <label for="price_min" class="mr-2">Price Min:</label>
+                <input type="number" id="price_min" name="price_min" step="0.01" value="{{ app.request.get('price_min') }}" class="form-control mr-2">
+            </div>
+            <div class="col-md-2">
+                <label for="price_max" class="mr-2">Price Max:</label>
+                <input type="number" id="price_max" name="price_max" step="0.01" value="{{ app.request.get('price_max') }}" class="form-control mr-2">
+            </div>
+            <div class="col-md-2">
+                <label for="stock_min" class="mr-2">Stock Min:</label>
+                <input type="number" id="stock_min" name="stock_min" value="{{ app.request.get('stock_min') }}" class="form-control mr-2">
+            </div>
+            <div class="col-md-2">
+                <label for="stock_max" class="mr-2">Stock Max:</label>
+                <input type="number" id="stock_max" name="stock_max" value="{{ app.request.get('stock_max') }}" class="form-control mr-2">
+            </div>
+            <div class="col-md-2">
+                <label for="date_from" class="mr-2">Date From:</label>
+                <input type="date" id="date_from" name="date_from" value="{{ app.request.get('date_from') }}" class="form-control mr-2">
+            </div>
+            <div class="col-md-2">
+                <label for="date_to" class="mr-2">Date To:</label>
+                <input type="date" id="date_to" name="date_to" value="{{ app.request.get('date_to') }}" class="form-control mr-2">
+            </div>
+            {# <button type="submit" class="btn btn-primary">Search</button> #}
+        </div>
+    </form>
+    <div class="table-responsive mt-3">
+        <table class="table table-bordered table-condensed table-striped">
+            <thead>
+                <tr>
+                    <th class="text-center">ID</th>
+                    <th class="text-center">
+                        <a class="links" href="{{ path('product_list', { sort: 'name', direction: sort == 'name' and direction == 'asc' ? 'desc' : 'asc' }) }}">
+                            Name
+                            {% if sort == 'name' %}
+                                {% if direction == 'asc' %}↑{% else %}↓{% endif %}
+                            {% endif %}
+                        </a>
+                    </th>
+                    <th class="text-center">
+                        <a class="links" href="{{ path('product_list', { sort: 'description', direction: sort == 'description' and direction == 'asc' ? 'desc' : 'asc' }) }}">
+                            Description
+                            {% if sort == 'description' %}
+                                {% if direction == 'asc' %}↑{% else %}↓{% endif %}
+                            {% endif %}
+                        </a>
+                    </th>
+                    <th class="text-center">
+                        <a class="links" href="{{ path('product_list', { sort: 'price', direction: sort == 'price' and direction == 'asc' ? 'desc' : 'asc' }) }}">
+                            Price
+                            {% if sort == 'price' %}
+                                {% if direction == 'asc' %}↑{% else %}↓{% endif %}
+                            {% endif %}
+                        </a>
+                    </th>
+                    <th class="text-center">
+                        <a class="links" href="{{ path('product_list', { sort: 'stockQuantity', direction: sort == 'stockQuantity' and direction == 'asc' ? 'desc' : 'asc' }) }}">
+                            Stock Quantity
+                            {% if sort == 'stockQuantity' %}
+                                {% if direction == 'asc' %}↑{% else %}↓{% endif %}
+                            {% endif %}
+                        </a>
+                    </th>
+                    <th class="text-center">
+                        <a class="links" href="{{ path('product_list', { sort: 'createdDatetime', direction: sort == 'createdDatetime' and direction == 'asc' ? 'desc' : 'asc' }) }}">
+                            Created Datetime
+                            {% if sort == 'createdDatetime' %}
+                                {% if direction == 'asc' %}↑{% else %}↓{% endif %}
+                            {% endif %}
+                        </a>
+                    </th>
+                    <th class="text-center"></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in products %}
+                    <tr>
+                        <td>{{ product.id }}</td>
+                        <td>{{ product.name }}</td>
+                        <td>{{ product.description }}</td>
+                        <td>{{ product.price }}</td>
+                        <td>{{ product.stockQuantity }}</td>
+                        <td>{{ product.createdDatetime|date('Y-m-d H:i:s', 'Asia/Singapore') }}</td>
+                        <td class="text-center">
+                            {# <a href="{{ path('product_edit', {'id': product.id}) }}"><i class="bi bi-pencil-square"></i></a> #}
+                            <a class="edit_product" href="#" data-id="{{ product.id }}"><i class="bi bi-pencil-square"></i></a>
+                            
+                            <a href="{{ path('product_delete', { 'id': product.id, '_token': csrf_token('delete' ~ product.id) }) }}"><i class="bi bi-trash"></i></a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="float-end">
+        <nav aria-label="Page navigation example">
+            {% if products.haveToPaginate %}
+                <ul class="pagination">
+                    <li class="page-item"><a class="page-link" href="{{ path('product_list', request.query.all|merge({'page': 1})) }}">First</a></li>
+                    
+                    {% if products.hasPreviousPage %}
+                        <li class="page-item"><a class="page-link" href="{{ path('product_list', request.query.all|merge({'page': products.previousPage})) }}">Previous</a></li>
+                    {% else %}
+                        <li class="page-item"><span class="page-link disabled">Previous</span></li>
+                    {% endif %}
+                    
+                    {% for page in 1..products.nbPages %}
+                        {% if page == products.currentPage %}
+                            <li class="page-item active"><span class="page-link current">{{ page }}</span></li>
+                        {% else %}
+                            <li class="page-item"><a class="page-link" href="{{ path('product_list', request.query.all|merge({'page': page})) }}">{{ page }}</a></li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if products.hasNextPage %}
+                        <li class="page-item"><a class="page-link" href="{{ path('product_list', request.query.all|merge({'page': products.nextPage})) }}">Next</a></li>
+                    {% else %}
+                        <li class="page-item"><span class="page-link disabled">Next</span></li>
+                    {% endif %}
+                    
+                    <li class="page-item"><a class="page-link" href="{{ path('product_list', request.query.all|merge({'page': products.nbPages})) }}">Last</a></li>
+                </ul>
+            {% endif %}
+        </nav>
+            
+        <div class="modal fade" id="addNew" tabindex="-1" role="dialog" aria-labelledby="product_new" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Create New Product</h5>
+                    </div>
+                    <div class="data-body">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="edit" tabindex="-1" role="dialog" aria-labelledby="product_edit" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Edit Product</h5>
+                    </div>
+                    <div class="data-body">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script>
+            $(document).ready(function() {
+                $('#addNew').on('show.bs.modal', function (e) {
+                    var modal = $(this);
+                    $.ajax({
+                        url: "{{ path('product_new') }}",
+                        success: function(data) {
+                            modal.find('.data-body').html(data);
+                        }
+                    });
+                });
+
+                $(".edit_product").on("click", function(){
+                    var id = $(this).attr("data-id");
+
+                    var modal = $('#edit').modal('show');
+                    var url = "{{ path('product_edit', {'id': 'product_id'}) }}";
+                    url = url.replace('product_id', id);
+
+                    $.ajax({
+                        url: url,
+                        success: function(data) {
+                            modal.find('.data-body').html(data);
+                        }
+                    });
+                }); 
+            });
+        </script>
+    </div>
+</div>
+
+{% endblock %}

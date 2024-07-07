@@ -1,0 +1,49 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    {# <h1>Edit Product</h1>
+    {{ form_start(form) }}
+         {{ form_widget(form, {'attr': {'class': 'form-control'}}) }}
+         
+        <button type="submit">Save</button>
+    {{ form_end(form) }} #}
+
+{# {{ form_start(form, {'attr': {'action': path('product_edit', {'id': '27'})}}) }} #}
+ {{ form_start(form) }}
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                {{ form_errors(form) }}
+                <div class="modal-body">
+                    <div class="form-inline">
+                        <div class="form-group">
+                            {{ form_label(form.name) }}
+                            {{ form_widget(form.name) }}
+                            {{ form_errors(form.name) }}
+                        </div>
+                        <div class="form-group">
+                            {{ form_label(form.description) }}
+                            {{ form_widget(form.description) }}
+                            {{ form_errors(form.description) }}
+                        </div>
+                        <div class="form-group">
+                            {{ form_label(form.price) }}
+                            {{ form_widget(form.price) }}
+                            {{ form_errors(form.price) }}
+                        </div>
+                        <div class="form-group">
+                            {{ form_label(form.stockQuantity) }}
+                            {{ form_widget(form.stockQuantity) }}
+                            {{ form_errors(form.stockQuantity) }}
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Save changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{{ form_end(form) }}
+{% endblock %}
