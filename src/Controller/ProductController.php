@@ -13,9 +13,6 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Pagerfanta\Doctrine\ORM\QueryAdapter;
 use Pagerfanta\Pagerfanta;
-use Symfony\Component\Security\Core\Exception\InvalidCsrfTokenException;
-use Symfony\Component\Security\Csrf\CsrfToken;
-use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 
 class ProductController extends AbstractController
 {
@@ -95,22 +92,27 @@ class ProductController extends AbstractController
     {
         $file = $request->files->get('csv_file');
         if ($file) {
-            $csv = Reader::createFromPath($file->getPathname(), 'r');
-            $csv->setHeaderOffset(0);
+            try {
+                $csv = Reader::createFromPath($file->getPathname(), 'r');
+                $csv->setHeaderOffset(0);
 
-            foreach ($csv as $row) {
-                $product = new Product();
-                $product->setName($row['name']);
-                $product->setDescription($row['description']);
-                $product->setPrice($row['price']);
-                $product->setStockQuantity($row['stock_quantity']);
-                $product->setCreatedDatetime(new \DateTime($this->dateNow));
-                // $product->setCreatedDatetime(new \DateTime($row['created_datetime']));
+                foreach ($csv as $row) {
+                    $product = new Product();
+                    $product->setName($row['name']);
+                    $product->setDescription($row['description']);
+                    $product->setPrice($row['price']);
+                    $product->setStockQuantity($row['stock_quantity']);
+                    $product->setCreatedDatetime(new \DateTime($this->dateNow));
 
-                $entityManager->persist($product);
+                    $entityManager->persist($product);
+                }
+
+                $entityManager->flush();
+
+                $this->addFlash('success', 'CSV imported successfully.');
+            } catch (\Exception $e) {
+                $this->addFlash('error', 'An error occurred while importing csv file: ' . $e->getMessage());
             }
-
-            $entityManager->flush();
         }
 
         return $this->redirectToRoute('product_list');
@@ -141,7 +143,6 @@ class ProductController extends AbstractController
         ]);
     }
 
-
     #[Route('/products/new', name: 'product_new')]
     public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
@@ -154,10 +155,17 @@ class ProductController extends AbstractController
         $product->setCreatedDatetime(new \DateTime($this->dateNow));
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->persist($product);
-            $entityManager->flush();
 
-            return $this->redirectToRoute('product_list');
+            try {
+                $entityManager->persist($product);
+                $entityManager->flush();
+
+                $this->addFlash('success', 'Product created successfully.');
+
+                return $this->redirectToRoute('product_list');
+            } catch (\Exception $e) {
+                $this->addFlash('error', 'An error occurred while creating the product: ' . $e->getMessage());
+            }
         }
 
         return $this->render('product/new.html.twig', [
@@ -175,9 +183,15 @@ class ProductController extends AbstractController
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->flush();
+            try {
+                $entityManager->flush();
 
-            return $this->redirectToRoute('product_list');
+                $this->addFlash('success', 'Product updated successfully.');
+
+                return $this->redirectToRoute('product_list');
+            } catch (\Exception $e) {
+                $this->addFlash('error', 'An error occurred while updating the product: ' . $e->getMessage());
+            }
         }
 
         return $this->render('product/edit.html.twig', [
@@ -191,6 +205,10 @@ class ProductController extends AbstractController
         if ($this->isCsrfTokenValid('delete'.$product->getId(), $request->query->get('_token'))) {
             $entityManager->remove($product);
             $entityManager->flush();
+
+            $this->addFlash('success', 'Product deleted successfully.');
+        } else {
+            $this->addFlash('error', 'There was an error.');
         }
     
         return $this->redirectToRoute('product_list');

@@ -20,13 +20,13 @@ class ProductType extends AbstractType
             ->add('name', TextType::class, [
                 'label' => 'Product Name',
                 'attr' => [
-                    'class' => 'form-control',
-                ],
+                    'class' => 'form-control form-control-sm',
+                ],  
             ])
             ->add('description', TextareaType::class, [
                 'label' => 'Description',
                 'attr' => [
-                    'class' => 'form-control',
+                    'class' => 'form-control form-control-sm',
                 ],
             ])
             ->add('price', NumberType::class, [
@@ -34,14 +34,14 @@ class ProductType extends AbstractType
                 'html5' => true,
                 'attr' => [
                     "min"  => 0.1,
-                    'class' => 'form-control',
+                    'class' => 'form-control form-control-sm',
                 ],
             ])
             ->add('stockQuantity', NumberType::class, [
                 'label' => 'Stock Quantity',
                 'html5' => true,
                 'attr' => [
-                    'class' => 'form-control',
+                    'class' => 'form-control form-control-sm',
                 ],
             ]);
     }
