@@ -12,7 +12,7 @@ Managing products with basic operations: Create, Read, Update, and Delete. This 
   
 # Installing the Project
 1. Clone the master branch from git repo to your local machine.
-    `git clone https://github.com/raymondgeee/prod-mgnt.git`
+    * `git clone https://github.com/raymondgeee/prod-mgnt.git`
 2. Open git bash or terminal and navigate to the project folder
 3. Create MySQL Database name it `"productsdb"` then run:
     ```
