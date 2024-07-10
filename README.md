@@ -17,7 +17,7 @@ Managing products with basic operations: Create, Read, Update, and Delete. This 
 3. On your terminal, install dependencies: 
     ```
     * composer install
-    * npm install`
+    * npm install
     ```
 4. Create MySQL Database name it `"productsdb"` then run:
     ```
