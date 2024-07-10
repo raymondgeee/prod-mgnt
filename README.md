@@ -21,6 +21,7 @@ Managing products with basic operations: Create, Read, Update, and Delete. This 
     ```
 4. Create MySQL Database name it `"productsdb"` then run:
     ```
+    * php bin/console make:migration
     * php bin/console doctrine:migrations:migrate
     ```
 5. Running the project open two terminal and type:
