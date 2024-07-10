@@ -14,14 +14,14 @@ Managing products with basic operations: Create, Read, Update, and Delete. This 
 1. Clone the master branch from git repo to your local machine.
     * `git clone https://github.com/raymondgeee/prod-mgnt.git`
 2. Open git bash or terminal and navigate to the project folder
-3. Create MySQL Database name it `"productsdb"` then run:
-    ```
-    * php bin/console doctrine:migrations:migrate
-    ```
-4. On your terminal, install dependencies: 
+3. On your terminal, install dependencies: 
     ```
     * composer install
     * npm install`
+    ```
+4. Create MySQL Database name it `"productsdb"` then run:
+    ```
+    * php bin/console doctrine:migrations:migrate
     ```
 5. Running the project open two terminal and type:
     ```
