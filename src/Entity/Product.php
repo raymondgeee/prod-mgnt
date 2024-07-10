@@ -4,8 +4,10 @@ namespace App\Entity;
 
 use App\Repository\ProductRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Gedmo\Mapping\Annotation as Gedmo;
 
 #[ORM\Entity(repositoryClass: ProductRepository::class)]
+#[Gedmo\SoftDeleteable(fieldName: "deletedAt", timeAware: false, hardDelete: false)]
 class Product
 {
     #[ORM\Id]
@@ -27,6 +29,9 @@ class Product
 
     #[ORM\Column(type: 'datetime')]
     private $createdDatetime;
+
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private $deletedAt;
 
     // Getters and setters...
 
@@ -87,6 +92,18 @@ class Product
     public function setCreatedDatetime(\DateTimeInterface $createdDatetime): self
     {
         $this->createdDatetime = $createdDatetime;
+        return $this;
+    }
+
+    public function getDeletedAt(): ?\DateTimeInterface
+    {
+        return $this->deletedAt;
+    }
+
+    public function setDeletedAt(?\DateTimeInterface $deletedAt): self
+    {
+        $this->deletedAt = $deletedAt;
+
         return $this;
     }
 }

@@ -13,85 +13,82 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Pagerfanta\Doctrine\ORM\QueryAdapter;
 use Pagerfanta\Pagerfanta;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use App\Service\ProductService;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 class ProductController extends AbstractController
 {
     public $dateNow;
+    private $productService;
 
-    public function __construct() {
+    public function __construct(ProductService $productService) {
+        date_default_timezone_set('Asia/Singapore');
+        
         $this->dateNow = date("Y-m-d H:i:s");
+        $this->productService = $productService;
     }
 
-    #[Route('/products', name: 'product_list')]
-    public function list(Request $request, EntityManagerInterface $entityManager): Response
+    #[Route('/', name: 'product_list')]
+    public function list(Request $request): Response
     {
         $sort = $request->query->get('sort', 'name');
         $direction = $request->query->get('direction', 'asc');
+        $show_entries = $request->query->get('show_entries', 10);
 
         $allowedColumns = ['name', 'description', 'price', 'stockQuantity', 'createdDatetime'];
         if (!in_array($sort, $allowedColumns)) {
             throw $this->createNotFoundException('Invalid sort column.');
         }
 
-        $priceMin = $request->request->get('price_min');
-        $priceMax = $request->request->get('price_max');
-        $stockMin = $request->request->get('stock_min');
-        $stockMax = $request->request->get('stock_max');
-        $dateFrom = $request->request->get('date_from');
-        $dateTo = $request->request->get('date_to');
+        $filters = [
+            'product_name' => $request->query->get('product_name', ''),
+            'product_desc' => $request->query->get('product_desc', ''),
+            'price_min' => $request->query->get('price_min', ''),
+            'price_max' => $request->query->get('price_max', ''),
+            'stock_min' => $request->query->get('stock_min', ''),
+            'stock_max' => $request->query->get('stock_max', ''),
+            'date_from' => $request->query->get('date_from', ''),
+            'date_to' => $request->query->get('date_to', ''),
+        ];
 
         $currentPage = $request->query->getInt('page', 1);
 
-        $queryBuilder = $entityManager->getRepository(Product::class)->createQueryBuilder('p');
-
-        if ($priceMin != "") {
-            $queryBuilder->andWhere('p.price >= :priceMin')->setParameter('priceMin', $priceMin);
-        }
-
-        if ($priceMax != "") {
-            $queryBuilder->andWhere('p.price <= :priceMax')->setParameter('priceMax', $priceMax);
-        }
-
-        if ($stockMin != "") {
-            $queryBuilder->andWhere('p.stockQuantity >= :stockMin')->setParameter('stockMin', $stockMin);
-        }
-
-        if ($stockMax != "") {
-            $queryBuilder->andWhere('p.stockQuantity <= :stockMax')->setParameter('stockMax', $stockMax);
-        }
-
-        if ($dateFrom != "") {
-            $queryBuilder->andWhere('p.createdDatetime >= :dateFrom')->setParameter('dateFrom', new \DateTime($dateFrom));
-        }
-
-        if ($dateTo != "") {
-            $queryBuilder->andWhere('p.createdDatetime <= :dateTo')->setParameter('dateTo', new \DateTime($dateTo));
-        }
-
+        $queryBuilder = $this->productService->getFilters($filters);
         $queryBuilder->orderBy('p.' . $sort, $direction);
 
         $adapter = new QueryAdapter($queryBuilder);
         $pagerfanta = new Pagerfanta($adapter);
         $pagerfanta->setCurrentPage($currentPage);
-        $pagerfanta->setMaxPerPage(10);
+        $pagerfanta->setMaxPerPage($show_entries);
 
-        $product = new Product();
-        $form = $this->createForm(ProductType::class, $product);
+        $count = count($pagerfanta);
 
         return $this->render('product/index.html.twig', [
             'products' => $pagerfanta,
             'sort' => $sort,
             'direction' => $direction,
             'request' => $request,
-            'form' => $form->createView(),
+            'filters' => $filters,
+            'count' => $count,
+            'show_entries' => $show_entries,
         ]);
     }
+
 
     #[Route('/products/import', name: 'product_import', methods: ['POST'])]
     public function import(Request $request, EntityManagerInterface $entityManager): Response
     {
         $file = $request->files->get('csv_file');
-        if ($file) {
+        if ($file && $file instanceof UploadedFile) {
+
+            $mimeType = $file->getMimeType();
+            if ($mimeType !== 'text/csv' && $mimeType !== 'text/plain') {
+                $this->addFlash('error', 'Invalid file type. Please upload a CSV file.');
+                return $this->redirectToRoute('product_list');
+            }
+
             try {
                 $csv = Reader::createFromPath($file->getPathname(), 'r');
                 $csv->setHeaderOffset(0);
@@ -113,6 +110,8 @@ class ProductController extends AbstractController
             } catch (\Exception $e) {
                 $this->addFlash('error', 'An error occurred while importing csv file: ' . $e->getMessage());
             }
+        } else {
+            $this->addFlash('error', 'No file uploaded.');
         }
 
         return $this->redirectToRoute('product_list');
@@ -122,25 +121,31 @@ class ProductController extends AbstractController
     public function export(EntityManagerInterface $entityManager): Response
     {
         $products = $entityManager->getRepository(Product::class)->findAll();
+        $count = $this->productService->countProducts();
 
-        $csv = Writer::createFromString('');
-        $csv->insertOne(['id', 'name', 'description', 'price', 'stock_quantity', 'created_datetime']);
+        if($count > 0) {
+            $csv = Writer::createFromString('');
+            $csv->insertOne(['id', 'name', 'description', 'price', 'stock_quantity', 'created_datetime']);
 
-        foreach ($products as $product) {
-            $csv->insertOne([
-                $product->getId(),
-                $product->getName(),
-                $product->getDescription(),
-                $product->getPrice(),
-                $product->getStockQuantity(),
-                $product->getCreatedDatetime()->format('Y-m-d H:i:s'),
+            foreach ($products as $product) {
+                $csv->insertOne([
+                    $product->getId(),
+                    $product->getName(),
+                    $product->getDescription(),
+                    $product->getPrice(),
+                    $product->getStockQuantity(),
+                    $product->getCreatedDatetime()->format('Y-m-d H:i:s'),
+                ]);
+            }
+
+            return new Response($csv->getContent(), 200, [
+                'Content-Type' => 'text/csv',
+                'Content-Disposition' => 'attachment; filename="products.csv"',
             ]);
+        } else {
+            $this->addFlash('error', 'No data to be exported.');
+            return $this->redirectToRoute('product_list');
         }
-
-        return new Response($csv->getContent(), 200, [
-            'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="products.csv"',
-        ]);
     }
 
     #[Route('/products/new', name: 'product_new')]
@@ -199,18 +204,29 @@ class ProductController extends AbstractController
         ]);
     }
 
-    #[Route('/products/{id}/delete', name: 'product_delete', methods: ['GET'])]
-    public function delete(Request $request, Product $product, EntityManagerInterface $entityManager): Response
+    #[Route('/products/{id}/delete', name: 'product_delete', methods: ['POST'])]
+    public function delete(Request $request, Product $product, EntityManagerInterface $entityManager): JsonResponse
     {
-        if ($this->isCsrfTokenValid('delete'.$product->getId(), $request->query->get('_token'))) {
+        if (!$product) {
+            return new JsonResponse([
+                'data' => 'error',
+                'msg' => 'Product not found.',
+            ]);
+        }
+
+        if ($this->isCsrfTokenValid('delete' . $product->getId(), $request->request->get('_token'))) {
             $entityManager->remove($product);
             $entityManager->flush();
 
-            $this->addFlash('success', 'Product deleted successfully.');
+            return new JsonResponse([
+                'data' => 'success',
+                'msg' => 'Product deleted successfully.',
+            ]);
         } else {
-            $this->addFlash('error', 'There was an error.');
+            return new JsonResponse([
+                'data' => 'error',
+                'msg' => 'Invalid CSRF token.',
+            ]);
         }
-    
-        return $this->redirectToRoute('product_list');
     }
 }

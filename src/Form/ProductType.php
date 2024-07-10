@@ -11,6 +11,7 @@ use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints as Assert;
 
 class ProductType extends AbstractType
 {
@@ -20,13 +21,25 @@ class ProductType extends AbstractType
             ->add('name', TextType::class, [
                 'label' => 'Product Name',
                 'attr' => [
+                    'placeholder' => 'Product Name',
                     'class' => 'form-control form-control-sm',
-                ],  
+                ],
+                'constraints' => [
+                    new Assert\NotBlank([
+                        'message' => 'The product name cannot be empty.',
+                    ]),
+                ],
             ])
             ->add('description', TextareaType::class, [
                 'label' => 'Description',
                 'attr' => [
+                    'placeholder' => 'Description',
                     'class' => 'form-control form-control-sm',
+                ],
+                'constraints' => [
+                    new Assert\NotBlank([
+                        'message' => 'The description cannot be empty.',
+                    ]),
                 ],
             ])
             ->add('price', NumberType::class, [
@@ -34,14 +47,32 @@ class ProductType extends AbstractType
                 'html5' => true,
                 'attr' => [
                     "min"  => 0.1,
+                    'placeholder' => 'Price',
                     'class' => 'form-control form-control-sm',
+                ],
+                'constraints' => [
+                    new Assert\NotBlank([
+                        'message' => 'The price cannot be empty.',
+                    ]),
+                    new Assert\Positive([
+                        'message' => 'The price must be a positive number.',
+                    ]),
                 ],
             ])
             ->add('stockQuantity', NumberType::class, [
                 'label' => 'Stock Quantity',
                 'html5' => true,
                 'attr' => [
+                    'placeholder' => 'Stock Quantity',
                     'class' => 'form-control form-control-sm',
+                ],
+                'constraints' => [
+                    new Assert\NotBlank([
+                        'message' => 'The stock quantity cannot be empty.',
+                    ]),
+                    new Assert\PositiveOrZero([
+                        'message' => 'The stock quantity cannot be negative.',
+                    ]),
                 ],
             ]);
     }

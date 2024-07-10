@@ -1,3 +1,10 @@
+import './bootstrap.js';
+import { startStimulusApp } from '@symfony/stimulus-bridge';
+import '@symfony/ux-turbo';
+
+export const app = startStimulusApp(
+    require.context('./controllers', true, /\.js$/)
+);
 /*
  * Welcome to your app's main JavaScript file!
  *
@@ -9,7 +16,3 @@
 import $ from 'jquery';
 import './styles/app.scss';
 import 'bootstrap'
-
-$(document).ready(function() {
-    console.log('Hello jQuery!');
-});
