@@ -4,11 +4,11 @@
 Managing products with basic operations: Create, Read, Update, and Delete. This involves creating forms to add new products, displaying product information, updating existing products, and deleting them. Symfony components like Doctrine ORM for database interactions, Twig for templating, and Symfony Forms for form handling are crucial for efficiently implementing these CRUD functionalities.
 
 # Technical Details
-  Symfony 7.1\
+  Symfony v7.1\
   PHP v8.2.13\
-  JQuery 3.7.1\
-  Bootstrap 5.3.3\
-  MySQL 5.7.43
+  JQuery v3.7.1\
+  Bootstrap v5.3.3\
+  MySQL v8.3.0
   
 # Installing the Project
 1. Clone the master branch from git repo to your local machine.
