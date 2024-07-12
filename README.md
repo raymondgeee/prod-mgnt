@@ -5,10 +5,10 @@ Managing products with basic operations: Create, Read, Update, and Delete. This 
 
 # Technical Details
   Symfony v7.1\
-  PHP v8.2.13\
+  PHP v8.3.6\
   JQuery v3.7.1\
   Bootstrap v5.3.3\
-  MySQL v8.3.0
+  MariaDB v10.5.22
   
 # Installing the Project
 1. Clone the master branch from git repo to your local machine.
@@ -19,12 +19,13 @@ Managing products with basic operations: Create, Read, Update, and Delete. This 
     * composer install
     * npm install
     ```
-4. Create MySQL Database name it `"productsdb"` then run:
+4. Create Database run:
     ```
+    * php bin/console doctrine:database:create
     * php bin/console make:migration
     * php bin/console doctrine:migrations:migrate
     ```
-5. Running the project open two terminal and type:
+5. Running the project open terminal and type:
     ```
     * npm run dev - to compile webpack
     * php bin/console server:start or symfony server:start
