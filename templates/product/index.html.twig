@@ -45,227 +45,68 @@
                 </script>
             {% endfor %}
             
-            <turbo-frame id="products-frame">
-                <form id="filter-form" method="get" action="{{ path('product_list', request.query.all|merge({filters})) }}">
-                    <div class="row mt-3">
-                        <div class="col-md-2">
-                            <label for="product_name" class="fs-6">Product Name</label>
-                            <input placeholder="Search Product Name" type="text" id="product_name" name="product_name" value="{{ filters.product_name|default('') }}" class="form-control form-control-sm mr-2">
-                        </div>
-                        <div class="col-md-2">
-                            <label for="price_min" class="fs-6">Description</label>
-                            <input placeholder="Search Description" type="text" id="product_desc" name="product_desc" value="{{ filters.product_desc|default('') }}" class="form-control form-control-sm mr-2">
-                        </div>
-                        <div class="col-md-2">
-                            <label for="price_min" class="fs-6">Price Min</label>
-                            <input placeholder="Search Price Minimum" type="number" id="price_min" name="price_min" step="0.01" value="{{ filters.price_min|default('') }}" class="form-control form-control-sm mr-2">
-                        </div>
-                        <div class="col-md-2">
-                            <label for="price_max" class="fs-6">Price Max</label>
-                            <input placeholder="Search Price Maximum" type="number" id="price_max" name="price_max" step="0.01" value="{{ filters.price_max|default('') }}" class="form-control form-control-sm mr-2">
-                        </div>
-                        <div class="col-md-2">
-                            <label for="stock_min" class="fs-6">Stock Min</label>
-                            <input placeholder="Search Stock Minimum" type="number" id="stock_min" name="stock_min" value="{{ filters.stock_min|default('') }}" class="form-control form-control-sm mr-2">
-                        </div>
-                        <div class="col-md-2">
-                            <label for="stock_max" class="fs-6">Stock Max</label>
-                            <input placeholder="Search Stock Maximum" type="number" id="stock_max" name="stock_max" value="{{ filters.stock_max|default('') }}" class="form-control form-control-sm mr-2">
-                        </div>
-                    </div>
-                    <div class="row mt-2">
-                        <div class="col-md-2">
-                            <label for="date_from" class="fs-6">Date From</label>
-                            <input type="date" id="date_from" name="date_from" value="{{ filters.date_from|default('') }}" class="form-control form-control-sm mr-2">
-                        </div>
-                        <div class="col-md-2">
-                            <label for="date_to" class="fs-6">Date To</label>
-                            <input type="date" id="date_to" name="date_to" value="{{ filters.date_to|default('') }}" class="form-control form-control-sm mr-2">
-                        </div>
-                        <div class="col-md-2 mt-4">
-                            <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-search me-2"></i>Apply Filters</button>
-                        </div>
-                    </div>
-                </form>
-                <div class="row mt-3">
-                    <div class="col-md-4 col-sm-5 col-xs-6">
-                        <div class="d-flex align-items-center">
-                            <label for="show_entries">Show entries</label>
-                            <div class="btn-group ms-1" role="group" aria-label="Show Entries">
-                                <a href="{{ path('product_list', request.query.all|merge({'show_entries': 10})) }}" type="button" class="btn btn-sm btn-outline-secondary {{ (show_entries == 10) ? 'active' : ''  }}">10</a>
-                                <a href="{{ path('product_list', request.query.all|merge({'show_entries': 20})) }}" type="button" class="btn btn-sm btn-outline-secondary {{ (show_entries == 20) ? 'active' : ''  }}">20</a>
-                                <a href="{{ path('product_list', request.query.all|merge({'show_entries': 30})) }}" type="button" class="btn btn-sm btn-outline-secondary {{ (show_entries == 30) ? 'active' : ''  }}">30</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-8 col-sm-7 col-xs-6">
-                        <div class="float-end">
-                            <button class="export btn btn-success btn-sm"><i class="bi bi-file-earmark-excel me-2"></i>Export to Excel</button>
-                            <button class="btn btn-primary btn-sm" id="createNew"><i class="bi bi-plus-circle me-2"></i>Create New / Import</button>
-                        </div>
+            <div class="row mt-3">
+                <div class="col-md-2">
+                    <label for="product_name" class="fs-6">Product Name</label>
+                    <input placeholder="Search Product Name" type="text" id="product_name" name="product_name" class="form-control form-control-sm mr-2">
+                </div>
+                <div class="col-md-2">
+                    <label for="price_min" class="fs-6">Description</label>
+                    <input placeholder="Search Description" type="text" id="product_desc" name="product_desc" class="form-control form-control-sm mr-2">
+                </div>
+                <div class="col-md-2">
+                    <label for="price_min" class="fs-6">Price Min</label>
+                    <input placeholder="Search Price Minimum" type="number" id="price_min" name="price_min" step="0.01" class="form-control form-control-sm mr-2">
+                </div>
+                <div class="col-md-2">
+                    <label for="price_max" class="fs-6">Price Max</label>
+                    <input placeholder="Search Price Maximum" type="number" id="price_max" name="price_max" step="0.01" class="form-control form-control-sm mr-2">
+                </div>
+                <div class="col-md-2">
+                    <label for="stock_min" class="fs-6">Stock Min</label>
+                    <input placeholder="Search Stock Minimum" type="number" id="stock_min" name="stock_min" class="form-control form-control-sm mr-2">
+                </div>
+                <div class="col-md-2">
+                    <label for="stock_max" class="fs-6">Stock Max</label>
+                    <input placeholder="Search Stock Maximum" type="number" id="stock_max" name="stock_max" class="form-control form-control-sm mr-2">
+                </div>
+            </div>
+            <div class="row mt-2">
+                <div class="col-md-2">
+                    <label for="date_from" class="fs-6">Date From</label>
+                    <input type="date" id="date_from" name="date_from" class="form-control form-control-sm mr-2">
+                </div>
+                <div class="col-md-2">
+                    <label for="date_to" class="fs-6">Date To</label>
+                    <input type="date" id="date_to" name="date_to" class="form-control form-control-sm mr-2">
+                </div>
+                <div class="col-md-8 mt-4">
+                    <button type="button" id="clear_btn" class="btn btn-secondary btn-sm"><i class="bi bi-eraser me-1"></i>Clear Filters</button>
+                    <button type="button" id="search_btn" class="btn btn-primary btn-sm"><i class="bi bi-search me-2"></i>Apply Filters</button>
+                </div>
+            </div>
+            <div class="table-responsive mt-3">
+                <div class="col-md-12 col-sm-7 col-xs-6">
+                    <div class="float-end">
+                        <button class="export btn btn-success btn-sm"><i class="bi bi-file-earmark-excel me-2"></i>Export to CSV</button>
+                        <button class="btn btn-primary btn-sm" id="createNew"><i class="bi bi-plus-circle me-2"></i>Create New / Import</button>
                     </div>
                 </div>
-                <div class="table-responsive mt-3">
-                    <table class="table table-bordered table-striped">
-                        <thead>
-                            <tr>
-                                <th class="text-center">ID</th>
-                                <th class="text-center">
-                                    <a class="links" href="{{ path('product_list', request.query.all|merge({ sort: 'name', direction: sort == 'name' and direction == 'asc' ? 'desc' : 'asc' })) }}">
-                                        Name
-                                        {% if sort == 'name' %}
-                                            {% if direction == 'asc' %}↑{% else %}↓{% endif %}
-                                        {% endif %}
-                                    </a>
-                                </th>
-                                <th class="text-center">
-                                    <a class="links" href="{{ path('product_list', request.query.all|merge({ sort: 'description', direction: sort == 'description' and direction == 'asc' ? 'desc' : 'asc' })) }}">
-                                        Description
-                                        {% if sort == 'description' %}
-                                            {% if direction == 'asc' %}↑{% else %}↓{% endif %}
-                                        {% endif %}
-                                    </a>
-                                </th>
-                                <th class="text-center">
-                                    <a class="links" href="{{ path('product_list', request.query.all|merge({ sort: 'price', direction: sort == 'price' and direction == 'asc' ? 'desc' : 'asc' })) }}">
-                                        Price
-                                        {% if sort == 'price' %}
-                                            {% if direction == 'asc' %}↑{% else %}↓{% endif %}
-                                        {% endif %}
-                                    </a>
-                                </th>
-                                <th class="text-center">
-                                    <a class="links" href="{{ path('product_list', request.query.all|merge({ sort: 'stockQuantity', direction: sort == 'stockQuantity' and direction == 'asc' ? 'desc' : 'asc' })) }}">
-                                        Stock Quantity
-                                        {% if sort == 'stockQuantity' %}
-                                            {% if direction == 'asc' %}↑{% else %}↓{% endif %}
-                                        {% endif %}
-                                    </a>
-                                </th>
-                                <th class="text-center">
-                                    <a class="links" href="{{ path('product_list', request.query.all|merge({ sort: 'createdDatetime', direction: sort == 'createdDatetime' and direction == 'asc' ? 'desc' : 'asc' })) }}">
-                                        Created Datetime
-                                        {% if sort == 'createdDatetime' %}
-                                            {% if direction == 'asc' %}↑{% else %}↓{% endif %}
-                                        {% endif %}
-                                    </a>
-                                </th>
-                                <th class="text-center"></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for product in products %}
-                                <tr>
-                                    <td class="text-center">{{ product.id }}</td>
-                                    <td>{{ product.name }}</td>
-                                    <td>{{ product.description }}</td>
-                                    <td class="text-end">{{ product.price }}</td>
-                                    <td class="text-end">{{ product.stockQuantity }}</td>
-                                    <td class="text-center">{{ product.createdDatetime|date('Y-m-d H:i:s', 'Asia/Singapore') }}</td>
-                                    <td class="text-center">
-                                        <a class="edit_product btn btn-primary btn-sm mt-1" data-id="{{ product.id }}"><i class="bi bi-pencil-square"></i></a>
-                                        <a class="delete_product btn btn-danger btn-sm mt-1" data-token="{{ csrf_token('delete' ~ product.id) }}" data-id="{{ product.id }}"><i class="bi bi-trash"></i></a>
-                                    </td>
-                                </tr>
-                            {% endfor %}
-
-                            {% if count == 0 %}
-                                <tr>
-                                    <td class="text-center text-danger" colspan=7>No Records found</td>
-                                </tr>
-                            {% endif %}
-                        </tbody>
-                    </table>
-                </div>
-                
-                <div class="float-end">
-                    <nav aria-label="page navigation">
-                        {% if products.haveToPaginate %}
-                            <ul class="pagination">
-                                <li class="page-item">
-                                    <a class="page-link" href="{{ path('product_list', request.query.all|merge({'page': 1})) }}">First</a>
-                                </li>
-                                
-                                {% if products.hasPreviousPage %}
-                                    <li class="page-item">
-                                        <a class="page-link" href="{{ path('product_list', request.query.all|merge({'page': products.previousPage})) }}">Previous</a>
-                                    </li>
-                                {% else %}
-                                    <li class="page-item">
-                                        <span class="page-link disabled">Previous</span>
-                                    </li>
-                                {% endif %}
-                                
-                                {% if products.nbPages > 8 %}
-                                    {% set startPage = max(1, products.currentPage - 1) %}
-                                    {% set endPage = min(products.nbPages, products.currentPage + 1) %}
-
-                                    {% if startPage > 2 %}
-                                        <li class="page-item">
-                                            <a class="page-link" href="{{ path('product_list', request.query.all|merge({'page': 1})) }}">1</a>
-                                        </li>
-                                        <li class="page-item"><span class="page-link">...</span></li>
-                                    {% elseif startPage == 2 %}
-                                        <li class="page-item">
-                                            <a class="page-link" href="{{ path('product_list', request.query.all|merge({'page': 1})) }}">1</a>
-                                        </li>
-                                    {% endif %}
-
-                                    {% for page in startPage..endPage %}
-                                        {% if page == products.currentPage %}
-                                            <li class="page-item active">
-                                                <span class="page-link">{{ page }}</span>
-                                            </li>
-                                        {% else %}
-                                            <li class="page-item">
-                                                <a class="page-link" href="{{ path('product_list', request.query.all|merge({'page': page})) }}">{{ page }}</a>
-                                            </li>
-                                        {% endif %}
-                                    {% endfor %}
-
-                                    {% if endPage < products.nbPages - 1 %}
-                                        <li class="page-item"><span class="page-link">...</span></li>
-                                        <li class="page-item">
-                                            <a class="page-link" href="{{ path('product_list', request.query.all|merge({'page': products.nbPages})) }}">{{ products.nbPages }}</a>
-                                        </li>
-                                    {% elseif endPage == products.nbPages - 1 %}
-                                        <li class="page-item">
-                                            <a class="page-link" href="{{ path('product_list', request.query.all|merge({'page': products.nbPages})) }}">{{ products.nbPages }}</a>
-                                        </li>
-                                    {% endif %}
-                                {% else %}
-
-                                    {% for page in 1..products.nbPages %}
-                                        {% if page == products.currentPage %}
-                                            <li class="page-item active">
-                                                <span class="page-link">{{ page }}</span>
-                                            </li>
-                                        {% else %}
-                                            <li class="page-item">
-                                                <a class="page-link" href="{{ path('product_list', request.query.all|merge({'page': page})) }}">{{ page }}</a>
-                                            </li>
-                                        {% endif %}
-                                    {% endfor %}
-                                {% endif %}
-
-                                {% if products.hasNextPage %}
-                                    <li class="page-item">
-                                        <a class="page-link" href="{{ path('product_list', request.query.all|merge({'page': products.nextPage})) }}">Next</a>
-                                    </li>
-                                {% else %}
-                                    <li class="page-item">
-                                        <span class="page-link disabled">Next</span>
-                                    </li>
-                                {% endif %}
-                                
-                                <li class="page-item">
-                                    <a class="page-link" href="{{ path('product_list', request.query.all|merge({'page': products.nbPages})) }}">Last</a>
-                                </li>
-                            </ul>
-                        {% endif %}
-                    </nav>
-                </div>
-            </turbo-frame>
+                <table id="product_table" class="table table-bordered table-striped">
+                    <thead>
+                        <tr>
+                            <th class="text-center">Product Name</th>
+                            <th class="text-center">Description</th>
+                            <th class="text-center">Price</th>
+                            <th class="text-center">Stock Quantity</th>
+                            <th class="text-center">Created Datetime</th>
+                            <th class="text-center"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
             <div class="modal fade" id="addNew" tabindex="-1" role="dialog" aria-labelledby="product_new" aria-hidden="true">
                 <div class="modal-dialog" role="document">
                     <div class="modal-content">
@@ -292,8 +133,94 @@
         </div>
     </div>
 </div>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/2.0.8/css/dataTables.bootstrap5.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.datatables.net/2.0.8/js/dataTables.js"></script>
+<script src="https://cdn.datatables.net/2.0.8/js/dataTables.bootstrap5.js"></script>
 <script>
 $(document).ready(function() {
+    var dt = $('#product_table').DataTable({
+                "processing": true,
+                "serverSide": true,
+                "searching": false,
+                "ajax": {
+                    "url": "{{ path('product_list') }}",
+                    "type": "GET",
+                    "dataSrc": "data",
+                    "data": function ( d ) {
+                        console.log($("#product_name").val())
+                        return $.extend( {}, d, {
+                            "product_name": $("#product_name").val(),
+                            "product_desc": $("#product_desc").val(),
+                            "price_min": $("#price_min").val(),
+                            "price_max": $("#price_max").val(),
+                            "stock_min": $("#stock_min").val(),
+                            "stock_max": $("#stock_max").val(),
+                            "date_from": $("#date_from").val(),
+                            "date_to": $("#date_to").val()
+                        });
+                    },
+                    "dataFilter": function(data){
+                        return data;
+                    }
+                },
+                "columns": [
+                    { "data": "name" },
+                    { "data": "description" },
+                    { "data": "price" },
+                    { "data": "stockQuantity" },
+                    { "data": "createdDatetime" },
+                    {
+                        "mData": "Name",
+                        "mRender": function (data, type, row) {
+                            return '<a class="edit_product btn btn-primary btn-sm mt-1 me-1" data-id="'+ row.id +'"><i class="bi bi-pencil-square"></i></a>' +
+                                    '<a class="delete_product btn btn-danger btn-sm mt-1" data-token="'+ row.token +'" data-id="'+row.id+'"><i class="bi bi-trash"></i></a>';
+                        },
+                        "orderable": false
+                    }
+                ],
+                "order": [[0, 'asc']],
+                "pageLength": 10,
+                "oLanguage": {
+                    "sLengthMenu": "Show _MENU_ Entries"
+                },
+                "layout": {
+                    topStart: {
+                        pageLength: {
+                            menu: [ 10, 25, 50, 100 ]
+                        }
+                    },
+                    bottomEnd: {
+                        paging: {
+                            numbers: 5
+                        }
+                    }
+                },
+                "columnDefs": [
+                    { targets: [ 4, 5 ], className: 'text-center' },
+                    { targets: [ 2, 3 ], className: 'text-end' },
+                ]
+            });
+
+    dt.draw();
+    
+    $(document).on("click", "#search_btn", function(){
+        dt.draw();
+    });
+
+    $(document).on("click", "#clear_btn", function(){
+        $("#product_name").val("")
+        $("#product_desc").val("")
+        $("#price_min").val("")
+        $("#price_max").val("")
+        $("#stock_min").val("")
+        $("#stock_max").val("")
+        $("#date_from").val("")
+        $("#date_to").val("")
+        dt.draw();
+    });
+
     $(document).on("click", "#createNew", function(){
         var modalElement = document.getElementById('addNew');
         var modal = new bootstrap.Modal(modalElement);
@@ -358,7 +285,7 @@ $(document).ready(function() {
                                 icon: "success",
                                 }).then((result) => {
                                     if (result.isConfirmed) {
-                                        $this.parent().parent().remove();
+                                        dt.draw();
                                     }
                                 });
                         } else if(data.data == 'error') {

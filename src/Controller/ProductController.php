@@ -5,8 +5,6 @@ namespace App\Controller;
 use App\Entity\Product;
 use App\Form\ProductType;
 use Doctrine\ORM\EntityManagerInterface;
-use League\Csv\Reader;
-use League\Csv\Writer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -17,30 +15,31 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use App\Service\ProductService;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Psr\Log\LoggerInterface;
+use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 
 class ProductController extends AbstractController
 {
     public $dateNow;
     private $productService;
+    private $logger;
 
-    public function __construct(ProductService $productService) {
+    public function __construct(ProductService $productService, LoggerInterface $logger) {
         date_default_timezone_set('Asia/Singapore');
         
         $this->dateNow = date("Y-m-d H:i:s");
         $this->productService = $productService;
+        $this->logger = $logger;
     }
 
     #[Route('/', name: 'product_list')]
-    public function list(Request $request): Response
+    public function list(Request $request, CsrfTokenManagerInterface $csrfTokenManager): Response
     {
-        $sort = $request->query->get('sort', 'name');
-        $direction = $request->query->get('direction', 'asc');
-        $show_entries = $request->query->get('show_entries', 10);
-
+        $start = $request->query->getInt('start', 0);
+        $length = $request->query->getInt('length', 10);
+        $queryParams = $request->query->all();
+       
         $allowedColumns = ['name', 'description', 'price', 'stockQuantity', 'createdDatetime'];
-        if (!in_array($sort, $allowedColumns)) {
-            throw $this->createNotFoundException('Invalid sort column.');
-        }
 
         $filters = [
             'product_name' => $request->query->get('product_name', ''),
@@ -53,68 +52,87 @@ class ProductController extends AbstractController
             'date_to' => $request->query->get('date_to', ''),
         ];
 
-        $currentPage = $request->query->getInt('page', 1);
+        if ($request->isXmlHttpRequest()) {
+            $queryBuilder = $this->productService->getFilters($filters);
+            
+            if (!empty($queryParams['order'])) {
+                foreach ($queryParams['order'] as $sortOrder) {
+                    $columnIndex = $sortOrder['column'];
+                    $sortDirection = $sortOrder['dir'];
+                    $sortColumn = $allowedColumns[$columnIndex];
 
-        $queryBuilder = $this->productService->getFilters($filters);
-        $queryBuilder->orderBy('p.' . $sort, $direction);
+                    $queryBuilder->addOrderBy('p.' . $sortColumn, $sortDirection);
+                }
+            }
 
-        $adapter = new QueryAdapter($queryBuilder);
-        $pagerfanta = new Pagerfanta($adapter);
-        $pagerfanta->setCurrentPage($currentPage);
-        $pagerfanta->setMaxPerPage($show_entries);
+            $totalRecords = count($queryBuilder->getQuery()->getResult());
 
-        $count = count($pagerfanta);
+            $queryBuilder->setFirstResult($start)
+                        ->setMaxResults($length);
 
-        return $this->render('product/index.html.twig', [
-            'products' => $pagerfanta,
-            'sort' => $sort,
-            'direction' => $direction,
-            'request' => $request,
-            'filters' => $filters,
-            'count' => $count,
-            'show_entries' => $show_entries,
-        ]);
+            $products = $queryBuilder->getQuery()->getArrayResult();
+
+            foreach ($products as &$product) {
+                if (isset($product['createdDatetime']) && $product['createdDatetime'] instanceof \DateTime) {
+                    $product['createdDatetime'] = $product['createdDatetime']->format('Y-m-d H:i:s');
+                    $product['token'] = $csrfTokenManager->getToken('delete' . $product['id'])->getValue();
+                }
+            }
+            
+            return $this->json([
+                'data' => $products,
+                'recordsTotal' => $totalRecords,
+                'recordsFiltered' => $totalRecords,
+            ]);
+        }
+       
+        return $this->render('product/index.html.twig');
     }
-
 
     #[Route('/products/import', name: 'product_import', methods: ['POST'])]
     public function import(Request $request, EntityManagerInterface $entityManager): Response
     {
         $file = $request->files->get('csv_file');
         if ($file && $file instanceof UploadedFile) {
-
             $mimeType = $file->getMimeType();
             if ($mimeType !== 'text/csv' && $mimeType !== 'text/plain') {
+                $this->logger->error("Invalid file type. Please upload a CSV file.");
                 $this->addFlash('error', 'Invalid file type. Please upload a CSV file.');
                 return $this->redirectToRoute('product_list');
             }
 
             try {
-                $csv = Reader::createFromPath($file->getPathname(), 'r');
-                $csv->setHeaderOffset(0);
+                $filePath = $file->getPathname();
 
-                foreach ($csv as $row) {
+                $importedData = $this->productService->importFromCSV($filePath);
+
+                foreach ($importedData as $row) {
                     $product = new Product();
                     $product->setName($row['name']);
                     $product->setDescription($row['description']);
                     $product->setPrice($row['price']);
                     $product->setStockQuantity($row['stock_quantity']);
                     $product->setCreatedDatetime(new \DateTime($this->dateNow));
-
                     $entityManager->persist($product);
                 }
 
                 $entityManager->flush();
 
-                $this->addFlash('success', 'CSV imported successfully.');
+                $this->addFlash('success', 'Products imported successfully.');
+
+                return $this->redirectToRoute('product_list');
+            } catch (FileException $e) {
+                $this->addFlash('error', 'Failed to upload file.');
+                $this->logger->error("Failed to upload file.");
             } catch (\Exception $e) {
-                $this->addFlash('error', 'An error occurred while importing csv file: ' . $e->getMessage());
+                $this->addFlash('error', 'Failed to import data.');
+                $this->logger->error("Failed to import data.");
             }
-        } else {
-            $this->addFlash('error', 'No file uploaded.');
         }
 
-        return $this->redirectToRoute('product_list');
+        return $this->render('product/index.html.twig', [
+            'error' => 'Please upload a valid CSV file.',
+        ]);
     }
 
     #[Route('/products/export', name: 'product_export')]
@@ -124,24 +142,25 @@ class ProductController extends AbstractController
         $count = $this->productService->countProducts();
 
         if($count > 0) {
-            $csv = Writer::createFromString('');
-            $csv->insertOne(['id', 'name', 'description', 'price', 'stock_quantity', 'created_datetime']);
-
+            $data = [];
             foreach ($products as $product) {
-                $csv->insertOne([
-                    $product->getId(),
-                    $product->getName(),
-                    $product->getDescription(),
-                    $product->getPrice(),
-                    $product->getStockQuantity(),
-                    $product->getCreatedDatetime()->format('Y-m-d H:i:s'),
-                ]);
+                $data[] = [
+                    "ID" => $product->getId(),
+                    "Name" => $product->getName(),
+                    "Description" => $product->getDescription(),
+                    "Price" => $product->getPrice(),
+                    "Stock Quantity" => $product->getStockQuantity(),
+                    "Created Datetime" => $product->getCreatedDatetime()->format('Y-m-d H:i:s'),
+                ];
             }
 
-            return new Response($csv->getContent(), 200, [
-                'Content-Type' => 'text/csv',
-                'Content-Disposition' => 'attachment; filename="products.csv"',
-            ]);
+            $csvData = $this->productService->arrayToCsv($data);
+
+            $response = new Response($csvData);
+            $response->headers->set('Content-Type', 'text/csv');
+            $response->headers->set('Content-Disposition', 'attachment; filename="products.csv"');
+
+            return $response;
         } else {
             $this->addFlash('error', 'No data to be exported.');
             return $this->redirectToRoute('product_list');

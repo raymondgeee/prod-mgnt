@@ -6,7 +6,7 @@ doctrine:
         # either here or in the DATABASE_URL env var (see .env file)
         #server_version: '16'
         driver: 'pdo_mysql'
-        server_version: 'mariadb-10.5.22'
+        server_version: '%env(resolve:SERVER_VERSION)%'
         charset: utf8mb4
         profiling_collect_backtrace: '%kernel.debug%'
         use_savepoints: true

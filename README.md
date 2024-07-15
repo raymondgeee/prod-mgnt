@@ -19,18 +19,20 @@ Managing products with basic operations: Create, Read, Update, and Delete. This 
     * composer install
     * npm install
     ```
-4. Create Database run:
+4. Open .env file check your database version and configure it:
+    `SERVER_VERSION="10.5.22-MariaDB"`
+5. Create Database run:
     ```
     * php bin/console doctrine:database:create
     * php bin/console make:migration
     * php bin/console doctrine:migrations:migrate
     ```
-5. Running the project open terminal and type:
+6. Running the project open terminal and type:
     ```
     * npm run dev - to compile webpack
     * php bin/console server:start or symfony server:start
     ```
-6. Open the project to your browser: http://127.0.0.1:8000 or http://localhost:8000
+7. Open the project to your browser: http://127.0.0.1:8000 or http://localhost:8000
 
 # Git Repository
 https://github.com/raymondgeee/prod-mgnt.git

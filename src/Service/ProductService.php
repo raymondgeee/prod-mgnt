@@ -62,4 +62,39 @@ class ProductService
 
         return $queryBuilder;
     }
+
+    public function arrayToCsv(array $data): string
+    {
+        $output = fopen('php://temp', 'r+');
+        if (!empty($data)) {
+            fputcsv($output, array_keys($data[0]));
+
+            foreach ($data as $row) {
+                fputcsv($output, $row);
+            }
+        }
+        rewind($output);
+        $csvData = stream_get_contents($output);
+        fclose($output);
+
+        return $csvData;
+    }
+
+    public function importFromCSV(string $filePath): array
+    {
+        if (($file = fopen($filePath, 'r')) !== false) {
+            $headers = fgetcsv($file);
+
+            $data = [];
+            while (($row = fgetcsv($file)) !== false) {
+                $data[] = array_combine($headers, $row);
+            }
+
+            fclose($file);
+
+            return $data;
+        } else {
+            throw new \Exception('Error opening the file ' . $filePath);
+        }
+    }
 }
