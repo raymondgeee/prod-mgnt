@@ -86,7 +86,7 @@
                 </div>
             </div>
             <div class="table-responsive mt-3">
-                <div class="col-md-12 col-sm-7 col-xs-6">
+                <div class="col-md-12 col-sm-12 col-xs-12">
                     <div class="float-end">
                         <button class="export btn btn-success btn-sm"><i class="bi bi-file-earmark-excel me-2"></i>Export to CSV</button>
                         <button class="btn btn-primary btn-sm" id="createNew"><i class="bi bi-plus-circle me-2"></i>Create New / Import</button>
@@ -141,6 +141,7 @@
 <script>
 $(document).ready(function() {
     var dt = $('#product_table').DataTable({
+                "responsive": true,
                 "processing": true,
                 "serverSide": true,
                 "searching": false,
