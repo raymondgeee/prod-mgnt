@@ -17,6 +17,8 @@ use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
+use Symfony\Component\HttpFoundation\StreamedResponse;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 
 class ProductController extends AbstractController
 {
@@ -142,25 +144,53 @@ class ProductController extends AbstractController
         $count = $this->productService->countProducts();
 
         if($count > 0) {
+            $totalProducts = count($products);
+            $chunkSize = 100;
             $data = [];
-            foreach ($products as $product) {
-                $data[] = [
-                    "ID" => $product->getId(),
-                    "Name" => $product->getName(),
-                    "Description" => $product->getDescription(),
-                    "Price" => $product->getPrice(),
-                    "Stock Quantity" => $product->getStockQuantity(),
-                    "Created Datetime" => $product->getCreatedDatetime()->format('Y-m-d H:i:s'),
-                ];
+            $csvFiles = [];
+
+            $zip = new \ZipArchive();
+            $zipFileName = 'products_chunked.zip';
+            $zipFilePath = sys_get_temp_dir() . '/' . $zipFileName;
+
+            if ($zip->open($zipFilePath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== TRUE) {
+                throw new \Exception('Could not create ZIP archive');
             }
 
-            $csvData = $this->productService->arrayToCsv($data);
+            for ($i = 0; $i < $totalProducts; $i += $chunkSize) {
+                $chunk = array_slice($products, $i, $chunkSize);
+                $csvData = [];
+                
+                foreach ($chunk as $product) {
+                    $csvData[] = [
+                        "ID" => $product->getId(),
+                        "Name" => $product->getName(),
+                        "Description" => $product->getDescription(),
+                        "Price" => $product->getPrice(),
+                        "Stock Quantity" => $product->getStockQuantity(),
+                        "Created Datetime" => $product->getCreatedDatetime()->format('Y-m-d H:i:s'),
+                    ];
+                }
 
-            $response = new Response($csvData);
-            $response->headers->set('Content-Type', 'text/csv');
-            $response->headers->set('Content-Disposition', 'attachment; filename="products.csv"');
+                $csvString = $this->productService->arrayToCsv($csvData);
+                $csvFileName = 'products_chunk_' . ($i / $chunkSize + 1) . '.csv';
+                
+                $zip->addFromString($csvFileName, $csvString);
+            }
+
+            $zip->close();
+
+            $response = new StreamedResponse(function() use ($zipFilePath) {
+                readfile($zipFilePath);
+            });
+
+            $response->headers->set('Content-Type', 'application/zip');
+            $response->headers->set('Content-Disposition', ResponseHeaderBag::DISPOSITION_ATTACHMENT);
+            $response->headers->set('Content-Length', filesize($zipFilePath));
+            $response->headers->set('Content-Transfer-Encoding', 'binary');
 
             return $response;
+            
         } else {
             $this->addFlash('error', 'No data to be exported.');
             return $this->redirectToRoute('product_list');
